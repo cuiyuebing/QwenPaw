@@ -422,5 +422,4 @@ See [Config & Working Directory](./config) for full details.
 - [Channels](./channels) — DingTalk, Feishu, iMessage, Discord, QQ setup
 - [Heartbeat](./heartbeat) — Scheduled check-in / digest
 - [Skills](./skills) — Built-in and custom skills
-- [Local Models](./local-models) — Run models locally with llama.cpp or MLX
 - [Config & Working Directory](./config) — Working directory and config.json

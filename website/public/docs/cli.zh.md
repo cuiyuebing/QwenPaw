@@ -408,5 +408,4 @@ copaw --host 0.0.0.0 --port 9090 cron list
 - [频道配置](./channels) —— 钉钉、飞书、iMessage、Discord、QQ 详细步骤
 - [心跳](./heartbeat) —— 定时自检/摘要
 - [技能](./skills) —— 内置技能与自定义技能
-- [本地模型](./local-models) —— 通过 llama.cpp 或 MLX 运行本地模型
 - [配置与工作目录](./config) —— 工作目录与 config.json
