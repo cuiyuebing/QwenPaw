@@ -224,6 +224,7 @@ You can also download and manage local models from the Console UI.
 | [Local Models](https://copaw.agentscope.io/docs/local-models) | Run models locally with llama.cpp or MLX |
 | [CLI](https://copaw.agentscope.io/docs/cli) | Init, cron jobs, skills, clean |
 | [Skills](https://copaw.agentscope.io/docs/skills) | Extend and customize capabilities |
+| [Memory](https://copaw.agentscope.io/docs/memory) | Context management and long-term memory |
 | [Config](https://copaw.agentscope.io/docs/config) | Working directory and config file |
 
 Full docs in this repo: [website/public/docs/](website/public/docs/).
