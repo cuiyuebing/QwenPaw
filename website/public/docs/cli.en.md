@@ -134,7 +134,6 @@ copaw models remove-local <model_id> --yes   # skip confirmation
 | `--source`  | `-s`  | `huggingface` | Download source (`huggingface` or `modelscope`)                       |
 | `--file`    | `-f`  | _(auto)_      | Specific filename. If omitted, auto-selects (prefers Q4_K_M for GGUF) |
 
-> For a full walkthrough see [Local Models](./local-models).
 
 #### Ollama models
 
