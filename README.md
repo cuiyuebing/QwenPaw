@@ -49,7 +49,7 @@ Your Personal AI Assistant; easy to install, deploy on your own machine or on th
 >
 > </details>
 
----
+----
 
 ## Table of Contents
 
@@ -59,16 +59,16 @@ Your Personal AI Assistant; easy to install, deploy on your own machine or on th
 > - **I want to chat in DingTalk / Feishu / QQ**: [Quick Start](#-quick-start) → [Channels](https://copaw.agentscope.io/docs/channels).
 > - **I don’t want to install Python**: [One-line install](#one-line-install-recommended) handles Python automatically, or use [ModelScope one-click](https://modelscope.cn/studios/fork?target=AgentScope/CoPaw) for cloud.
 
-- [Quick Start](#-quick-start)
-- [API Key](#-api-key)
-- [Local Models](#-local-models)
-- [Documentation](#-documentation)
-- [Install from source](#-install-from-source)
-- [Why CoPaw?](#-why-copaw)
-- [Built by](#-built-by)
-- [License](#-license)
+- [Quick Start](#quick-start)
+- [API Key](#api-key)
+- [Local Models](#local-models)
+- [Documentation](#documentation)
+- [Install from source](#install-from-source)
+- [Why CoPaw?](#why-copaw)
+- [Built by](#built-by)
+- [License](#license)
 
----
+----
 
 ## Quick Start
 
@@ -202,15 +202,15 @@ After installing, download a model and start chatting:
 
 ```bash
 copaw models download Qwen/Qwen3-4B-GGUF
-copaw models                          # select the downloaded model
-copaw app                             # start the server
+copaw models # select the downloaded model
+copaw app # start the server
 ```
 
 You can also download and manage local models from the Console UI.
 
 > **Full guide:** [Local Models documentation](https://copaw.agentscope.io/docs/local-models) covers all CLI commands, Console UI walkthrough, and backend details.
 
----
+----
 
 ## Documentation
 
@@ -228,7 +228,7 @@ You can also download and manage local models from the Console UI.
 
 Full docs in this repo: [website/public/docs/](website/public/docs/).
 
----
+----
 
 ## Install from source
 
@@ -241,19 +241,19 @@ pip install -e .
 - **Dev** (tests, formatting): `pip install -e ".[dev]"`
 - **Console** (build frontend): `cd console && npm ci && npm run build`, then `copaw app` from project root.
 
----
+----
 
 ## Why CoPaw?
 
 CoPaw represents both a **Co Personal Agent Workstation** and a "co-paw"—a partner always by your side. More than just a cold tool, CoPaw is a warm "little paw" always ready to lend a hand (or a paw!). It is the ultimate teammate for your digital life.
 
----
+----
 
 ## Built by
 
 [AgentScope team](https://github.com/agentscope-ai) · [AgentScope](https://github.com/agentscope-ai/agentscope) · [AgentScope Runtime](https://github.com/agentscope-ai/agentscope-runtime) · [ReMe](https://github.com/agentscope-ai/ReMe)
 
----
+----
 
 ## License
 
