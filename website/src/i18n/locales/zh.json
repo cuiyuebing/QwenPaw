@@ -54,7 +54,8 @@
       },
       "apps": {
         "title": "CoPaw 定制模型",
-        "desc": "CoPaw 专门定制的本地小模型 CoPaw-Flash 已上线，围绕 CoPaw 核心场景优化，兼顾使用体验、推理成本与隐私安全。"
+        "desc": "CoPaw 专门定制的本地小模型 CoPaw-Flash 已上线，围绕 CoPaw 核心场景优化，兼顾使用体验、推理成本与隐私安全。",
+        "learnMoreHref": "https://www.modelscope.cn/organization/AgentScope"
       },
       "memory": {
         "title": "记忆",

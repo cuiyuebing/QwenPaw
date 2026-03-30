@@ -54,7 +54,8 @@
       },
       "apps": {
         "title": "CoPaw Custom Models",
-        "desc": "CoPaw-Flash, CoPaw's custom on-device small model, is now available—optimized for core CoPaw workflows with a strong balance of usability, cost efficiency, and privacy."
+        "desc": "CoPaw-Flash, CoPaw's custom on-device small model, is now available—optimized for core CoPaw workflows with a strong balance of usability, cost efficiency, and privacy.",
+        "learnMoreHref": "https://huggingface.co/agentscope-ai"
       },
       "memory": {
         "title": "Memory",
