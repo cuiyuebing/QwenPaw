@@ -56,11 +56,11 @@ $QWENPAW_SECRET_DIR/                       # 默认 ~/.qwenpaw.secret
 
 **路径相关：**
 
-| 变量                     | 默认值              | 说明                                                                                        |
-| ------------------------ | ------------------- | ------------------------------------------------------------------------------------------- |
+| 变量                       | 默认值              | 说明                                                                                        |
+| -------------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
 | `QWENPAW_WORKING_DIR`      | `~/.qwenpaw`        | 工作目录根路径                                                                              |
 | `QWENPAW_SECRET_DIR`       | `~/.qwenpaw.secret` | 敏感数据目录（存放 `providers.json` 和 `envs.json`）。Docker 中默认为 `/app/working.secret` |
-| `QWENPAW_CONFIG_FILE`      | `config.json`       | 配置文件名（相对于 `QWENPAW_WORKING_DIR`）                                                    |
+| `QWENPAW_CONFIG_FILE`      | `config.json`       | 配置文件名（相对于 `QWENPAW_WORKING_DIR`）                                                  |
 | `QWENPAW_HEARTBEAT_FILE`   | `HEARTBEAT.md`      | 心跳文件名（相对于智能体工作区）                                                            |
 | `QWENPAW_JOBS_FILE`        | `jobs.json`         | 定时任务文件名（相对于智能体工作区）                                                        |
 | `QWENPAW_CHATS_FILE`       | `chats.json`        | 对话历史文件名（相对于智能体工作区）                                                        |
@@ -68,8 +68,8 @@ $QWENPAW_SECRET_DIR/                       # 默认 ~/.qwenpaw.secret
 
 **其他配置：**
 
-| 变量                               | 默认值         | 说明                                                            |
-| ---------------------------------- | -------------- | --------------------------------------------------------------- |
+| 变量                                 | 默认值         | 说明                                                            |
+| ------------------------------------ | -------------- | --------------------------------------------------------------- |
 | `QWENPAW_LOG_LEVEL`                  | `info`         | 日志级别（`debug` / `info` / `warning` / `error` / `critical`） |
 | `QWENPAW_MEMORY_COMPACT_THRESHOLD`   | `100000`       | 触发记忆压缩的字符阈值                                          |
 | `QWENPAW_MEMORY_COMPACT_KEEP_RECENT` | `3`            | 压缩后保留的最近消息数                                          |
@@ -78,8 +78,8 @@ $QWENPAW_SECRET_DIR/                       # 默认 ~/.qwenpaw.secret
 
 **安全与认证：**
 
-| 变量                       | 默认值  | 说明                                     |
-| -------------------------- | ------- | ---------------------------------------- |
+| 变量                         | 默认值  | 说明                                     |
+| ---------------------------- | ------- | ---------------------------------------- |
 | `QWENPAW_AUTH_ENABLED`       | `false` | 是否启用 Web 控制台登录认证              |
 | `QWENPAW_AUTH_USERNAME`      | -       | 自动注册时的管理员用户名（可选）         |
 | `QWENPAW_AUTH_PASSWORD`      | -       | 自动注册时的管理员密码（可选）           |
@@ -148,12 +148,12 @@ $QWENPAW_SECRET_DIR/                       # 默认 ~/.qwenpaw.secret
 
 **`agents.profiles[agent_id]`** 引用字段：
 
-| 字段            | 类型   | 必填 | 说明                                                            |
-| --------------- | ------ | ---- | --------------------------------------------------------------- |
-| `id`            | string | 是   | 智能体唯一标识                                                  |
-| `name`          | string | 是   | 智能体显示名称                                                  |
-| `description`   | string | 否   | 智能体描述（用于多智能体协作时的分工判断）                      |
-| `enabled`       | bool   | 是   | 是否启用该智能体                                                |
+| 字段            | 类型   | 必填 | 说明                                                              |
+| --------------- | ------ | ---- | ----------------------------------------------------------------- |
+| `id`            | string | 是   | 智能体唯一标识                                                    |
+| `name`          | string | 是   | 智能体显示名称                                                    |
+| `description`   | string | 否   | 智能体描述（用于多智能体协作时的分工判断）                        |
+| `enabled`       | bool   | 是   | 是否启用该智能体                                                  |
 | `workspace_dir` | string | 否   | 工作区路径（可选，默认为 `$QWENPAW_WORKING_DIR/workspaces/{id}`） |
 
 > **向后兼容：** 全局 config.json 中还保留了 `channels`、`mcp`、`tools`、`security` 等字段，用于向后兼容旧版本。在多智能体模式下，这些配置应该在各智能体的 `agent.json` 中设置。

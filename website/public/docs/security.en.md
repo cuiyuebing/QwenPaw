@@ -69,7 +69,7 @@ In `config.json`:
 
 | Field            | Description                                                                                                                                           |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enabled`        | Enable or disable Tool Guard entirely. Can also be set via the `QWENPAW_TOOL_GUARD_ENABLED` environment variable (takes precedence).                    |
+| `enabled`        | Enable or disable Tool Guard entirely. Can also be set via the `QWENPAW_TOOL_GUARD_ENABLED` environment variable (takes precedence).                  |
 | `guarded_tools`  | Specify guard scope:<br>• `null` (default) — guard all built-in tools<br>• `[]` — guard nothing<br>• `["tool_a", "tool_b"]` — guard only listed tools |
 | `denied_tools`   | Tools that are always blocked regardless of parameters.                                                                                               |
 | `custom_rules`   | User-defined regex rules (see format below).                                                                                                          |
@@ -564,8 +564,8 @@ QwenPaw supports optional web login authentication to protect the Console from u
 
 ### Environment variables
 
-| Variable              | Description                                  | Required |
-| --------------------- | -------------------------------------------- | -------- |
+| Variable                | Description                                  | Required |
+| ----------------------- | -------------------------------------------- | -------- |
 | `QWENPAW_AUTH_ENABLED`  | Set to `true` to enable authentication       | **Yes**  |
 | `QWENPAW_AUTH_USERNAME` | Pre-set admin username for auto-registration | Optional |
 | `QWENPAW_AUTH_PASSWORD` | Pre-set admin password for auto-registration | Optional |

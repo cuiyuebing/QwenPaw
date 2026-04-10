@@ -593,8 +593,8 @@ All config and data live in `~/.qwenpaw` by default:
         └── ...
 ```
 
-| Variable            | Description                         |
-| ------------------- | ----------------------------------- |
+| Variable              | Description                         |
+| --------------------- | ----------------------------------- |
 | `QWENPAW_WORKING_DIR` | Override the working directory path |
 | `QWENPAW_CONFIG_FILE` | Override the config file path       |
 

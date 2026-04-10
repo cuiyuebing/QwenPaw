@@ -87,11 +87,11 @@ You can customize paths and behavior via environment variables:
 
 **Path-related:**
 
-| Variable                 | Default             | Description                                                                                                 |
-| ------------------------ | ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Variable                   | Default             | Description                                                                                                 |
+| -------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `QWENPAW_WORKING_DIR`      | `~/.qwenpaw`        | Working directory root path                                                                                 |
 | `QWENPAW_SECRET_DIR`       | `~/.qwenpaw.secret` | Sensitive data directory (stores `providers.json` and `envs.json`). Docker default is `/app/working.secret` |
-| `QWENPAW_CONFIG_FILE`      | `config.json`       | Config file name (relative to `QWENPAW_WORKING_DIR`)                                                          |
+| `QWENPAW_CONFIG_FILE`      | `config.json`       | Config file name (relative to `QWENPAW_WORKING_DIR`)                                                        |
 | `QWENPAW_HEARTBEAT_FILE`   | `HEARTBEAT.md`      | Heartbeat file name (relative to agent workspace)                                                           |
 | `QWENPAW_JOBS_FILE`        | `jobs.json`         | Cron jobs file name (relative to agent workspace)                                                           |
 | `QWENPAW_CHATS_FILE`       | `chats.json`        | Conversation history file name (relative to agent workspace)                                                |
@@ -99,8 +99,8 @@ You can customize paths and behavior via environment variables:
 
 **Other configuration:**
 
-| Variable                           | Default         | Description                                                                 |
-| ---------------------------------- | --------------- | --------------------------------------------------------------------------- |
+| Variable                             | Default         | Description                                                                 |
+| ------------------------------------ | --------------- | --------------------------------------------------------------------------- |
 | `QWENPAW_LOG_LEVEL`                  | `info`          | Log level (`debug` / `info` / `warning` / `error` / `critical`)             |
 | `QWENPAW_MEMORY_COMPACT_THRESHOLD`   | `100000`        | Character threshold to trigger memory compaction                            |
 | `QWENPAW_MEMORY_COMPACT_KEEP_RECENT` | `3`             | Number of recent messages to keep after compaction                          |
@@ -109,8 +109,8 @@ You can customize paths and behavior via environment variables:
 
 **Security & Authentication:**
 
-| Variable                   | Default | Description                                        |
-| -------------------------- | ------- | -------------------------------------------------- |
+| Variable                     | Default | Description                                        |
+| ---------------------------- | ------- | -------------------------------------------------- |
 | `QWENPAW_AUTH_ENABLED`       | `false` | Whether to enable Web console login authentication |
 | `QWENPAW_AUTH_USERNAME`      | -       | Admin username for auto-registration (optional)    |
 | `QWENPAW_AUTH_PASSWORD`      | -       | Admin password for auto-registration (optional)    |
@@ -188,12 +188,12 @@ Stores globally shared configuration:
 
 **`agents.profiles[agent_id]` reference fields:**
 
-| Field           | Type   | Required | Description                                                                 |
-| --------------- | ------ | -------- | --------------------------------------------------------------------------- |
-| `id`            | string | Yes      | Agent unique identifier                                                     |
-| `name`          | string | Yes      | Agent display name                                                          |
-| `description`   | string | No       | Agent description (used for multi-agent collaboration)                      |
-| `enabled`       | bool   | Yes      | Whether to enable this agent                                                |
+| Field           | Type   | Required | Description                                                                   |
+| --------------- | ------ | -------- | ----------------------------------------------------------------------------- |
+| `id`            | string | Yes      | Agent unique identifier                                                       |
+| `name`          | string | Yes      | Agent display name                                                            |
+| `description`   | string | No       | Agent description (used for multi-agent collaboration)                        |
+| `enabled`       | bool   | Yes      | Whether to enable this agent                                                  |
 | `workspace_dir` | string | No       | Workspace path (optional, defaults to `$QWENPAW_WORKING_DIR/workspaces/{id}`) |
 
 > **Backward compatibility:** The global config.json still supports `channels`, `mcp`, `tools`, `security` and other fields for backward compatibility with older versions. In multi-agent mode, these configurations should be set in each agent's `agent.json`.
