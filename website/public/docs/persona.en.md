@@ -204,7 +204,7 @@ QwenPaw automatically creates a built-in agent named **"QA Agent"** (ID: `QwenPa
 This is an agent **specifically designed to answer QwenPaw-related questions**:
 
 - **Dedicated persona**: Uses persona files optimized for Q&A (different from regular agents)
-- **Pre-installed skills**: Auto-enables `guidance` and `qwenpaw_source_index` skills for querying QwenPaw documentation and source code
+- **Pre-installed skills**: Auto-enables `guidance` and `QA_source_index` skills for querying QwenPaw documentation and source code
 - **Tool configuration**: Only core tools enabled by default (execute_shell_command, read_file, write_file, edit_file, view_image); other built-in tools are disabled
 - **Auto-maintained**: Running `qwenpaw init` ensures this agent exists
 

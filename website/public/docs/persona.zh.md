@@ -204,7 +204,7 @@ QwenPaw 在首次运行 `qwenpaw init` 时会自动创建一个名为 **"QA Agen
 这是一个**专门用于回答 QwenPaw 相关问题**的智能体：
 
 - **专属人设**：使用专门为问答优化的人设文件（与普通智能体不同）
-- **预装技能**：自动启用 `guidance` 和 `qwenpaw_source_index` 技能，可以查询 QwenPaw 官方文档和源码
+- **预装技能**：自动启用 `guidance` 和 `QA_source_index` 技能，可以查询 QwenPaw 官方文档和源码
 - **工具配置**：默认只启用核心工具（execute_shell_command、read_file、write_file、edit_file、view_image），其他内置工具默认禁用
 - **自动维护**：每次运行 `qwenpaw init` 时会自动确保该智能体存在
 
