@@ -15,7 +15,7 @@
 
 This guide explains how to install and use the QwenPaw Desktop application on Windows and macOS.
 
-[releases]: https://github.com/agentscope-ai/QwenPaw/releases
+[releases]: https://qwenpaw.agentscope.io/downloads
 
 ## Important Notice
 

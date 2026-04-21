@@ -15,7 +15,7 @@
 
 本文档说明如何在 Windows 和 macOS 系统上安装和使用 QwenPaw Desktop 桌面应用。
 
-[releases]: https://github.com/agentscope-ai/QwenPaw/releases
+[releases]: https://qwenpaw.agentscope.io/downloads
 
 ## 特别说明
 
