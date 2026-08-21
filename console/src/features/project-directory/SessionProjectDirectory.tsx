@@ -5,8 +5,12 @@ import {
   ChevronDown,
   ChevronRight,
   CircleAlert,
+  Eye,
+  EyeOff,
   Folder,
+  FolderPlus,
   FolderOpen,
+  House,
   LoaderCircle,
   RotateCw,
   X,
@@ -62,6 +66,19 @@ export default function SessionProjectDirectory({
   );
   const [browser, setBrowser] = useState<BrowseDirsResponse | null>(null);
   const [browseLoading, setBrowseLoading] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
+  const [createDirectoryOpen, setCreateDirectoryOpen] = useState(false);
+  const [newDirectoryName, setNewDirectoryName] = useState("");
+  const [createDirectoryLoading, setCreateDirectoryLoading] = useState(false);
+  const [createDirectoryError, setCreateDirectoryError] = useState("");
+  // Mirrored in a ref so `browse` keeps a stable identity: it is a dependency
+  // of the panel-open effect, which would otherwise re-run on every toggle and
+  // navigate back to the project directory.
+  const showHiddenRef = useRef(false);
+  // Monotonically increasing sequence number for browse requests.
+  // Only the most recent request is allowed to update state, preventing stale
+  // responses from overwriting newer results when requests complete out of order.
+  const browseSeq = useRef(0);
   const announceChanged = () => {
     notifyProjectDirectoryChanged(scope);
     onChanged?.();
@@ -112,16 +129,25 @@ export default function SessionProjectDirectory({
 
   const browse = useCallback(
     async (path?: string, selectCurrent = false) => {
+      const seq = ++browseSeq.current;
       setBrowseLoading(true);
       try {
-        const next = await projectDirectoryApi.browseDirs(path);
+        const next = await projectDirectoryApi.browseDirs(
+          path,
+          showHiddenRef.current,
+        );
+        if (seq !== browseSeq.current) return;
         setBrowser(next);
         if (selectCurrent) {
           updateDraft(next.current);
           setSelectedRecentPath(null);
         }
+      } catch {
+        // Stale or failed requests are silently discarded; only the latest
+        // request is allowed to clear the loading indicator.
+        if (seq !== browseSeq.current) return;
       } finally {
-        setBrowseLoading(false);
+        if (seq === browseSeq.current) setBrowseLoading(false);
       }
     },
     [updateDraft],
@@ -173,6 +199,43 @@ export default function SessionProjectDirectory({
   const clearDraft = () => {
     updateDraft("");
     setSelectedRecentPath(null);
+  };
+
+  const toggleHidden = () => {
+    const next = !showHidden;
+    showHiddenRef.current = next;
+    setShowHidden(next);
+    void browse(browser?.current ?? draft);
+  };
+
+  const cancelCreateDirectory = () => {
+    setCreateDirectoryOpen(false);
+    setNewDirectoryName("");
+    setCreateDirectoryError("");
+  };
+
+  const createDirectory = async () => {
+    const name = newDirectoryName.trim();
+    if (!browser || !name) return;
+    setCreateDirectoryLoading(true);
+    setCreateDirectoryError("");
+    try {
+      const created = await projectDirectoryApi.createDirectory(
+        browser.current,
+        name,
+      );
+      selectCustomPath(created.path);
+      await browse(browser.current);
+      cancelCreateDirectory();
+    } catch (error) {
+      setCreateDirectoryError(
+        error instanceof Error
+          ? error.message.split(" - ")[0]
+          : t("projectDirectory.createDirectoryFailed"),
+      );
+    } finally {
+      setCreateDirectoryLoading(false);
+    }
   };
 
   const save = async () => {
@@ -355,7 +418,7 @@ export default function SessionProjectDirectory({
                 type="text"
                 size="small"
                 aria-label={t("projectDirectory.homeDirectory")}
-                icon={<FolderOpen size={14} />}
+                icon={<House size={14} />}
                 onClick={() => void browse("~", true)}
               />
               <Button
@@ -378,8 +441,68 @@ export default function SessionProjectDirectory({
                 }
                 onClick={() => void browse(browser?.current ?? draft)}
               />
+              <Button
+                type={createDirectoryOpen ? "primary" : "text"}
+                size="small"
+                disabled={!browser || browser.selectable === false}
+                aria-label={t("projectDirectory.createDirectory")}
+                aria-pressed={createDirectoryOpen}
+                icon={<FolderPlus size={14} />}
+                onClick={() => {
+                  if (createDirectoryOpen) {
+                    cancelCreateDirectory();
+                  } else {
+                    setCreateDirectoryOpen(true);
+                  }
+                }}
+              />
+              <Button
+                type={showHidden ? "primary" : "text"}
+                size="small"
+                aria-label={t("codingMode.openDirHiddenFolders")}
+                aria-pressed={showHidden}
+                icon={showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                onClick={toggleHidden}
+              />
             </div>
           </div>
+
+          {createDirectoryOpen && (
+            <div className={styles.createDirectoryForm}>
+              <Input
+                size="small"
+                autoFocus
+                status={createDirectoryError ? "error" : undefined}
+                value={newDirectoryName}
+                placeholder={t("projectDirectory.directoryNamePlaceholder")}
+                onChange={(event) => {
+                  setNewDirectoryName(event.target.value);
+                  setCreateDirectoryError("");
+                }}
+                onPressEnter={() => void createDirectory()}
+              />
+              <Button
+                type="primary"
+                size="small"
+                loading={createDirectoryLoading}
+                disabled={!newDirectoryName.trim()}
+                aria-label={t("common.confirm")}
+                icon={<Check size={14} />}
+                onClick={() => void createDirectory()}
+              />
+              <Button
+                type="text"
+                size="small"
+                disabled={createDirectoryLoading}
+                aria-label={t("common.cancel")}
+                icon={<X size={14} />}
+                onClick={cancelCreateDirectory}
+              />
+              {createDirectoryError && (
+                <small role="alert">{createDirectoryError}</small>
+              )}
+            </div>
+          )}
 
           <div className={styles.directories}>
             {browseLoading && !browser && (

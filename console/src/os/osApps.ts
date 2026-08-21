@@ -15,8 +15,8 @@ import {
   HeartPulse,
   Wifi,
   Inbox,
-  Code,
   Store,
+  ShoppingBag,
   Settings,
   Puzzle,
   History,
@@ -56,8 +56,7 @@ export interface OsAppDef {
 }
 
 /**
- * The PoC features these 6 (+ Chat & Coding) apps to demonstrate the desktop
- * shell. Each entry references a route already registered in builtinRoutes.
+ * Each entry references a route already registered in builtinRoutes.
  */
 export const OS_APPS: OsAppDef[] = [
   {
@@ -79,15 +78,6 @@ export const OS_APPS: OsAppDef[] = [
     defaultH: 720,
     minW: 760,
     minH: 480,
-  },
-  {
-    routeId: "core.coding",
-    labelKey: "nav.coding",
-    fallback: "Coding IDE",
-    Icon: Code,
-    accent: "#64748b",
-    defaultW: 1020,
-    defaultH: 700,
   },
   {
     routeId: "core.skills",
@@ -208,6 +198,7 @@ export const OS_APPS: OsAppDef[] = [
 /** Lookup helper (searches catalog + system apps). */
 export function findAppDef(routeId: string): OsAppDef | undefined {
   if (routeId === STORE_APP.routeId) return STORE_APP;
+  if (routeId === MARKETPLACE_APP.routeId) return MARKETPLACE_APP;
   if (routeId === SETTINGS_APP.routeId) return SETTINGS_APP;
   return OS_APPS.find((a) => a.routeId === routeId);
 }
@@ -224,6 +215,23 @@ export const STORE_APP: OsAppDef = {
   accent: "#FF7F16",
   defaultW: 860,
   defaultH: 600,
+};
+
+/**
+ * Marketplace — a route-backed system app. It is always available in the
+ * Desktop OS, but intentionally lives outside OS_APPS so it cannot be
+ * installed or uninstalled through the simulated App Store catalog.
+ */
+export const MARKETPLACE_APP: OsAppDef = {
+  routeId: "core.marketplace",
+  labelKey: "nav.marketplace",
+  fallback: "Marketplace",
+  Icon: ShoppingBag,
+  accent: "#0ea5e9",
+  defaultW: 1180,
+  defaultH: 720,
+  minW: 760,
+  minH: 480,
 };
 
 /**

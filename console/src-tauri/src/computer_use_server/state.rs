@@ -14,6 +14,34 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
+#[cfg(target_os = "macos")]
+use super::platform_macos::HostFocusLease;
+
+/// Platform resources retained while one agent turn interacts with the desktop.
+///
+/// The lifecycle is shared even though the native resource is not: macOS keeps
+/// the desktop host from reclaiming focus, while Windows already targets and
+/// verifies the foreground window for each action.
+struct InteractionSession {
+    #[cfg(target_os = "macos")]
+    _host_focus: HostFocusLease,
+}
+
+impl InteractionSession {
+    fn begin() -> Result<Self, (&'static str, String)> {
+        #[cfg(target_os = "macos")]
+        {
+            return Ok(Self {
+                _host_focus: HostFocusLease::begin()?,
+            });
+        }
+        #[cfg(windows)]
+        {
+            Ok(Self {})
+        }
+    }
+}
+
 /// Native accessibility element handle stored with an observation.
 /// Windows uses a UI Automation element; macOS uses an AXUIElement wrapper.
 #[cfg(windows)]
@@ -41,6 +69,9 @@ pub(super) const BMP_HEADER_BYTES: usize = 54;
 /// document would otherwise dominate the model's context, and the leading
 /// portion is what identifies the current state.
 pub(super) const DOC_TEXT_MAX: usize = 4000;
+
+/// Upper bound on actionable elements delivered with one observation.
+pub(super) const ACCESSIBILITY_MAX_ELEMENTS: usize = 300;
 
 /// Minimum idle time after our own input before another action may run.
 ///
@@ -87,26 +118,34 @@ impl WindowInfo {
     }
 }
 
-/// Everything an action needs from one observed window.
-///
-/// The identifier for this object is the only native context exposed to the
-/// model. Window handles, screenshot identifiers, and accessibility handles
-/// remain local so callers cannot accidentally combine state from separate
-/// observations.
-pub(super) struct Observation {
-    pub(super) window: WindowInfo,
-    /// The window's on-screen rectangle as `[left, top, width, height]`.
-    /// Origin plus size is used on both platforms so the meaning of each slot
-    /// is unambiguous wherever an observation is read.
+/// Native geometry for one screenshot delivered with an observation.
+#[derive(Debug)]
+pub(super) struct ScreenshotTarget {
+    pub(super) hwnd: isize,
     pub(super) bounds: [i32; 4],
-    // Pixel size of the delivered (possibly downscaled) screenshot. Model
-    // coordinates are expressed in this space and mapped back to physical
-    // window pixels before input is injected.
     pub(super) display_width: u32,
     pub(super) display_height: u32,
+}
+
+/// Everything an action needs from one observed window.
+///
+/// Observation and screenshot IDs are the only native context exposed to the
+/// model. Window and accessibility handles remain local, while screenshot IDs
+/// are opaque keys into this observation.
+pub(super) struct Observation {
+    pub(super) window: WindowInfo,
+    /// Stable target geometry, retained even for accessibility-only reads.
+    pub(super) window_bounds: [i32; 4],
+    pub(super) screenshots: HashMap<String, ScreenshotTarget>,
+    #[cfg(windows)]
+    pub(super) input_hwnd: isize,
     /// Digest of the normalized accessibility surface the model observed.
     /// Kept native-side so callers cannot copy or forge a revision token.
     pub(super) accessibility_revision: Option<[u8; 32]>,
+    /// Whether this exact macOS surface can accept one text action through an
+    /// application-owned editor that is absent from its accessibility tree.
+    #[cfg(target_os = "macos")]
+    pub(super) transient_text_ready: bool,
     pub(super) elements: HashMap<String, NativeElement>,
 }
 
@@ -148,14 +187,15 @@ pub(super) struct ServerState {
     pending_action: Option<PendingAction>,
     last_action_at: HashMap<isize, Instant>,
     global_action_at: Option<Instant>,
+    interaction_session: Option<InteractionSession>,
 }
 
 impl ServerState {
-    /// A desktop mutation makes every snapshot of that window stale.
-    pub(super) fn note_action(&mut self, hwnd: isize) {
+    /// A desktop mutation makes every snapshot of that application stale.
+    pub(super) fn note_action(&mut self, window: &WindowInfo) {
         self.observations
-            .retain(|_, observation| observation.window.hwnd != hwnd);
-        self.last_action_at.insert(hwnd, Instant::now());
+            .retain(|_, observation| observation.window.app_id != window.app_id);
+        self.last_action_at.insert(window.hwnd, Instant::now());
     }
 
     pub(super) fn note_global_action(&mut self) {
@@ -192,6 +232,14 @@ impl ServerState {
         self.pending_action = None;
         self.last_action_at.clear();
         self.global_action_at = None;
+        self.interaction_session = None;
+    }
+
+    pub(super) fn ensure_interaction_session(&mut self) -> Result<(), (&'static str, String)> {
+        if self.interaction_session.is_none() {
+            self.interaction_session = Some(InteractionSession::begin()?);
+        }
+        Ok(())
     }
 
     /// Discard point-in-time state after input outside the current action.
@@ -202,6 +250,7 @@ impl ServerState {
     pub(super) fn invalidate_observations(&mut self) {
         self.observations.clear();
         self.pending_action = None;
+        self.interaction_session = None;
     }
 }
 
@@ -272,25 +321,46 @@ pub(super) fn merge_app_list(installed: Vec<InstalledApp>, windows: Vec<WindowIn
         .collect()
 }
 
-/// Map a coordinate expressed in screenshot space onto the window.
+/// Resolve one screenshot capability from the current observation.
+pub(super) fn screenshot_target<'a>(
+    observation: &'a Observation,
+    params: &serde_json::Map<String, Value>,
+) -> Result<&'a ScreenshotTarget, (&'static str, String)> {
+    let screenshot_id = params
+        .get("screenshot_id")
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+        .ok_or((
+            "invalid_request",
+            "screenshot_id from the current observation is required for coordinate input."
+                .to_string(),
+        ))?;
+    observation.screenshots.get(screenshot_id).ok_or((
+        "unknown_screenshot",
+        "Screenshot is not available in the current observation; observe the window again."
+            .to_string(),
+    ))
+}
+
+/// Map a coordinate expressed in screenshot space onto its native surface.
 ///
-/// Returns the offset from the window's origin in physical pixels. Both
+/// Returns the offset from the screenshot's origin in physical pixels. Both
 /// platforms share the bounds check so a coordinate outside the delivered
-/// screenshot can never be extrapolated onto another application's window.
+/// image can never be extrapolated onto another application's window.
 pub(super) fn map_point(
-    observation: &Observation,
+    screenshot: &ScreenshotTarget,
     x: i64,
     y: i64,
 ) -> Result<(f64, f64), (&'static str, String)> {
-    if observation.display_width == 0 || observation.display_height == 0 {
+    if screenshot.display_width == 0 || screenshot.display_height == 0 {
         return Err((
             "visual_unavailable",
             "Coordinate input requires a window screenshot; use an accessibility element instead."
                 .to_string(),
         ));
     }
-    let display_width = i64::from(observation.display_width.max(1));
-    let display_height = i64::from(observation.display_height.max(1));
+    let display_width = i64::from(screenshot.display_width.max(1));
+    let display_height = i64::from(screenshot.display_height.max(1));
     if x < 0 || y < 0 || x >= display_width || y >= display_height {
         return Err((
             "point_outside_viewport",
@@ -299,8 +369,8 @@ pub(super) fn map_point(
     }
     // The screenshot may have been downscaled, so scale back to the window's
     // own pixels. With no downscaling these ratios are 1:1.
-    let width = f64::from(observation.bounds[2]);
-    let height = f64::from(observation.bounds[3]);
+    let width = f64::from(screenshot.bounds[2]);
+    let height = f64::from(screenshot.bounds[3]);
     Ok((
         x as f64 * width / display_width as f64,
         y as f64 * height / display_height as f64,
@@ -316,6 +386,15 @@ mod tests {
     use super::*;
 
     fn observation(bounds: [i32; 4], display: (u32, u32)) -> Observation {
+        let screenshots = HashMap::from([(
+            "screenshot-1".to_string(),
+            ScreenshotTarget {
+                hwnd: 1,
+                bounds,
+                display_width: display.0,
+                display_height: display.1,
+            },
+        )]);
         Observation {
             window: WindowInfo {
                 hwnd: 1,
@@ -326,10 +405,13 @@ mod tests {
                 title: String::new(),
                 class_name: String::new(),
             },
-            bounds,
-            display_width: display.0,
-            display_height: display.1,
+            window_bounds: bounds,
+            screenshots,
+            #[cfg(windows)]
+            input_hwnd: 1,
             accessibility_revision: None,
+            #[cfg(target_os = "macos")]
+            transient_text_ready: false,
             elements: HashMap::new(),
         }
     }
@@ -381,25 +463,44 @@ mod tests {
     }
 
     #[test]
+    fn accessibility_observations_are_bounded_to_300_elements() {
+        assert_eq!(ACCESSIBILITY_MAX_ELEMENTS, 300);
+    }
+
+    #[test]
     fn a_point_inside_the_viewport_maps_by_proportion() {
         // A 200x100 window delivered as a 100x50 screenshot is a 2:1 scale.
         let snap = observation([10, 20, 200, 100], (100, 50));
-        let (x, y) = map_point(&snap, 50, 25).unwrap();
+        let (x, y) = map_point(&snap.screenshots["screenshot-1"], 50, 25).unwrap();
         assert_eq!((x as i32, y as i32), (100, 50));
     }
 
     #[test]
     fn an_unscaled_screenshot_maps_one_to_one() {
         let snap = observation([0, 0, 100, 100], (100, 100));
-        let (x, y) = map_point(&snap, 30, 40).unwrap();
+        let (x, y) = map_point(&snap.screenshots["screenshot-1"], 30, 40).unwrap();
         assert_eq!((x as i32, y as i32), (30, 40));
+    }
+
+    #[test]
+    fn screenshot_ids_are_bound_to_one_observation() {
+        let snap = observation([0, 0, 100, 100], (100, 100));
+        let current = serde_json::json!({"screenshot_id": "screenshot-1"});
+        let current = current.as_object().unwrap();
+        assert_eq!(screenshot_target(&snap, current).unwrap().hwnd, 1);
+
+        let unknown = serde_json::json!({"screenshot_id": "screenshot-old"});
+        let error = screenshot_target(&snap, unknown.as_object().unwrap())
+            .expect_err("an ID from another observation must be refused");
+        assert_eq!(error.0, "unknown_screenshot");
     }
 
     #[test]
     fn points_outside_the_viewport_are_refused() {
         let snap = observation([0, 0, 100, 100], (100, 100));
         for (x, y) in [(-1, 0), (0, -1), (100, 0), (0, 100)] {
-            let error = map_point(&snap, x, y).expect_err("must be refused");
+            let error =
+                map_point(&snap.screenshots["screenshot-1"], x, y).expect_err("must be refused");
             assert_eq!(error.0, "point_outside_viewport");
         }
     }
